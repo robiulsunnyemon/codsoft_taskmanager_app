@@ -66,6 +66,26 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       themeMode: _themeMode,
+      builder: (context, widget) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          child: Container(
+            color: Colors.red,
+            child: Center(
+              child: SizedBox(
+                width: 400, // মোবাইলের width
+                height: 800, // মোবাইলের height
+                child: ClipRRect(
+                  child: Container(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    child: widget!,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
       home: MyHomePage(
         title: 'Task Manager',
         themeMode: _themeMode,
@@ -173,8 +193,10 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            Wrap(
+              spacing: 32,
+              runSpacing: 24,
+              alignment: WrapAlignment.spaceEvenly,
               children: [
                 _StatItem(
                   label: 'মোট',
@@ -317,8 +339,8 @@ class _MyHomePageState extends State<MyHomePage> {
             tooltip: 'ফিল্টার করুন',
             itemBuilder: (context) => [
               const PopupMenuItem(
-                child: Text('প্রায়োরিটি'),
                 enabled: false,
+                child: Text('প্রায়োরিটি'),
               ),
               ...TaskPriority.values.map((p) => PopupMenuItem(
                     onTap: () => setState(() => _filterPriority = p),
@@ -336,8 +358,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   )),
               const PopupMenuItem(
-                child: Text('ক্যাটাগরি'),
                 enabled: false,
+                child: Text('ক্যাটাগরি'),
               ),
               ...TaskCategory.values.map((c) => PopupMenuItem(
                     onTap: () => setState(() => _filterCategory = c),
@@ -355,8 +377,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   )),
               const PopupMenuItem(
-                child: Divider(),
                 enabled: false,
+                child: Divider(),
               ),
               PopupMenuItem(
                 onTap: () => setState(() {
@@ -375,15 +397,14 @@ class _MyHomePageState extends State<MyHomePage> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'টাস্ক খুঁজুন...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, size: 20),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
               onChanged: (value) {
@@ -416,14 +437,22 @@ class _MyHomePageState extends State<MyHomePage> {
                           vertical: 4,
                         ),
                         child: ListTile(
-                          leading: Checkbox(
-                            value: task.isCompleted,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                task.isCompleted = value!;
-                                _saveTasks();
-                              });
-                            },
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Checkbox(
+                              value: task.isCompleted,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  task.isCompleted = value!;
+                                  _saveTasks();
+                                });
+                              },
+                            ),
                           ),
                           title: Text(
                             task.title,
@@ -484,10 +513,14 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTask,
-        tooltip: 'টাস্ক যোগ করুন',
-        child: const Icon(Icons.add),
+      floatingActionButton: SizedBox(
+        width: 56,
+        height: 56,
+        child: FloatingActionButton(
+          onPressed: _addTask,
+          tooltip: 'টাস্ক যোগ করুন',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -512,17 +545,18 @@ class _StatItem extends StatelessWidget {
     return Column(
       children: [
         Icon(icon, color: color, size: 28),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: TextStyle(fontSize: 12),
         ),
       ],
     );
@@ -648,18 +682,23 @@ class _TaskDialogState extends State<TaskDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.task == null ? 'নতুন টাস্ক' : 'টাস্ক সম্পাদনা'),
+      title: Text(
+        widget.task == null ? 'নতুন টাস্ক' : 'টাস্ক সম্পাদনা',
+        style: TextStyle(fontSize: 18),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
+              style: TextStyle(fontSize: 14),
+              decoration: InputDecoration(
                 labelText: 'টাস্কের নাম',
+                labelStyle: TextStyle(fontSize: 14),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Row(
               children: [
                 Text(_deadline == null
@@ -716,12 +755,20 @@ class _TaskDialogState extends State<TaskDialog> {
           ],
         ),
       ),
+      contentPadding: const EdgeInsets.all(16),
       actions: [
         TextButton(
+          child: Text(
+            'বাতিল',
+            style: TextStyle(fontSize: 14),
+          ),
           onPressed: () => Navigator.pop(context),
-          child: const Text('বাতিল'),
         ),
         ElevatedButton(
+          child: Text(
+            'সংরক্ষণ',
+            style: TextStyle(fontSize: 14),
+          ),
           onPressed: () {
             if (_titleController.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -738,7 +785,6 @@ class _TaskDialogState extends State<TaskDialog> {
             ));
             Navigator.pop(context);
           },
-          child: const Text('সংরক্ষণ'),
         ),
       ],
     );
